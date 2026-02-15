@@ -1,17 +1,20 @@
 import { NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { getDb } from '@/lib/db';
 
 export async function GET() {
   try {
+    const db = getDb();
     const settings = db.prepare('SELECT * FROM business_settings WHERE id = 1').get();
     return NextResponse.json(settings || {});
   } catch (error) {
+    console.error('Settings API error:', error);
     return NextResponse.json({ error: 'Failed to fetch settings' }, { status: 500 });
   }
 }
 
 export async function PUT(request: Request) {
   try {
+    const db = getDb();
     const body = await request.json();
     const {
       business_name,
@@ -47,6 +50,7 @@ export async function PUT(request: Request) {
     
     return NextResponse.json({ message: 'Settings updated successfully' });
   } catch (error) {
+    console.error('Settings API error:', error);
     return NextResponse.json({ error: 'Failed to update settings' }, { status: 500 });
   }
 }
