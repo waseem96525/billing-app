@@ -3,8 +3,13 @@ import path from 'path';
 import fs from 'fs';
 
 const dataDir = path.join(process.cwd(), 'data');
-if (!fs.existsSync(dataDir)) {
+try {
   fs.mkdirSync(dataDir, { recursive: true });
+} catch (error: any) {
+  // Directory already exists or error creating it
+  if (error.code !== 'EEXIST') {
+    console.error('Error creating data directory:', error);
+  }
 }
 const dbPath = path.join(dataDir, 'database.sqlite');
 
