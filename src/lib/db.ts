@@ -1,7 +1,13 @@
 import Database from 'better-sqlite3';
 import path from 'path';
+import fs from 'fs';
 
-const dbPath = path.join(process.cwd(), 'billing.db');
+const dataDir = path.join(process.cwd(), 'data');
+if (!fs.existsSync(dataDir)) {
+  fs.mkdirSync(dataDir, { recursive: true });
+}
+const dbPath = path.join(dataDir, 'database.sqlite');
+
 const db = new Database(dbPath);
 
 // Initialize database tables with Indian market features
