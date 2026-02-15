@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import db from '@/lib/db';
 
-export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
-    const { id } = await params;
+    const { id } = params;
     const product = db.prepare(`
       SELECT p.*, c.name as category_name 
       FROM products p
@@ -21,9 +21,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   }
 }
 
-export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function PUT(request: Request, { params }: { params: { id: string } }) {
   try {
-    const { id } = await params;
+    const { id } = params;
     const body = await request.json();
     const {
       name,
@@ -89,9 +89,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: Request, { params }: { params: { id: string } }) {
   try {
-    const { id } = await params;
+    const { id } = params;
     // Soft delete
     db.prepare('UPDATE products SET is_active = 0 WHERE id = ?').run(id);
     
