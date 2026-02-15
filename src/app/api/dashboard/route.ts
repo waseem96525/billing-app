@@ -1,51 +1,55 @@
+// src/app/api/dashboard/route.ts
 import { NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { getDb } from '@/lib/db';
 
 export async function GET() {
   try {
+    // initialize DB lazily inside handler so any errors are caught here
+    const db = getDb();
+
     const today = new Date().toISOString().split('T')[0];
-    
+
     // Total sales (all time)
     const totalSalesResult: any = db.prepare(`
       SELECT COALESCE(SUM(total_amount), 0) as total
       FROM invoices
       WHERE status = 'completed'
     `).get();
-    
+
     // Today's sales
     const todaySalesResult: any = db.prepare(`
       SELECT COALESCE(SUM(total_amount), 0) as total
       FROM invoices
       WHERE status = 'completed' AND DATE(created_at) = ?
     `).get(today);
-    
+
     // Product stats
     const productsResult: any = db.prepare(`
       SELECT COUNT(*) as total FROM products WHERE is_active = 1
     `).get();
-    
+
     const lowStockResult: any = db.prepare(`
       SELECT COUNT(*) as total
       FROM products
       WHERE is_active = 1 AND quantity < min_stock_level
     `).get();
-    
+
     // Customer count
     const customersResult: any = db.prepare(`
       SELECT COUNT(*) as total FROM customers WHERE is_active = 1
     `).get();
-    
+
     // Invoice stats
     const invoicesResult: any = db.prepare(`
       SELECT COUNT(*) as total FROM invoices WHERE status = 'completed'
     `).get();
-    
+
     const pendingPaymentsResult: any = db.prepare(`
       SELECT COALESCE(SUM(total_amount), 0) as total
       FROM invoices
       WHERE payment_status = 'pending'
     `).get();
-    
+
     // Recent invoices
     const recentInvoices = db.prepare(`
       SELECT i.*, c.name as customer_name
@@ -54,7 +58,7 @@ export async function GET() {
       ORDER BY i.created_at DESC
       LIMIT 5
     `).all();
-    
+
     // Top products
     const topProducts = db.prepare(`
       SELECT 
@@ -68,7 +72,7 @@ export async function GET() {
       ORDER BY total_sales DESC
       LIMIT 5
     `).all();
-    
+
     // Sales by category
     const salesByCategory = db.prepare(`
       SELECT 
@@ -83,7 +87,7 @@ export async function GET() {
       ORDER BY total_sales DESC
       LIMIT 5
     `).all();
-    
+
     // Sales trend (last 7 days)
     const salesTrend = db.prepare(`
       SELECT 
@@ -96,7 +100,7 @@ export async function GET() {
       GROUP BY DATE(created_at)
       ORDER BY date ASC
     `).all();
-    
+
     return NextResponse.json({
       totalSales: totalSalesResult.total || 0,
       todaySales: todaySalesResult.total || 0,
@@ -112,6 +116,7 @@ export async function GET() {
     });
   } catch (error) {
     console.error('Dashboard error:', error);
+    // Return JSON error so client parsing doesn't blow up
     return NextResponse.json({ error: 'Failed to fetch dashboard data' }, { status: 500 });
   }
 }
