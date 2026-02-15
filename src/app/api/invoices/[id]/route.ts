@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { getDb } from '@/lib/db';
 
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
+    const db = getDb();
     const { id } = params;
     
     // Get invoice
@@ -32,7 +33,7 @@ export async function GET(
     
     return NextResponse.json(invoice);
   } catch (error) {
-    console.error('Error fetching invoice:', error);
+    console.error('Invoice detail API error:', error);
     return NextResponse.json({ error: 'Failed to fetch invoice' }, { status: 500 });
   }
 }
@@ -42,6 +43,7 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
+    const db = getDb();
     const { id } = params;
     const body = await request.json();
     const { payment_status, status, notes } = body;
@@ -57,6 +59,7 @@ export async function PUT(
     
     return NextResponse.json({ message: 'Invoice updated successfully' });
   } catch (error) {
+    console.error('Invoice update API error:', error);
     return NextResponse.json({ error: 'Failed to update invoice' }, { status: 500 });
   }
 }
