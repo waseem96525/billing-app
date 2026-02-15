@@ -1,11 +1,23 @@
 import Database from 'better-sqlite3';
 import path from 'path';
+import fs from 'fs';
 
-const dbPath = path.join(process.cwd(), 'billing.db');
+const dataDir = path.join(process.cwd(), 'data');
+try {
+  fs.mkdirSync(dataDir, { recursive: true });
+} catch (error: any) {
+  // Directory already exists or error creating it
+  if (error.code !== 'EEXIST') {
+    console.error('Error creating data directory:', error);
+  }
+}
+const dbPath = path.join(dataDir, 'database.sqlite');
+
 const db = new Database(dbPath);
 
 // Initialize database tables with Indian market features
-db.exec(`
+try {
+  db.exec(`
   CREATE TABLE IF NOT EXISTS business_settings (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     business_name TEXT NOT NULL,
@@ -190,5 +202,10 @@ db.exec(`
   (3, 2, 3, 'Rice 5kg', '1006', 4, 'KG', 350, 5, 70, 1330, 5, 33.25, 33.25, 0, 1396.5),
   (4, 2, 2, 'Sugar 1kg', '1701', 10, 'KG', 45, 0, 0, 450, 5, 11.25, 11.25, 0, 472.5),
   (5, 3, 4, 'Cotton Shirt', '6205', 1, 'PCS', 599, 0, 0, 599, 12, 35.94, 35.94, 0, 670.88);`);
+} catch (error) {
+  console.error('Error initializing database:', error);
+  // Database initialization failed, but we'll still export db
+  // Individual routes will handle query errors
+}
 
 export default db;
